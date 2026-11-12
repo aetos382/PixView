@@ -4,7 +4,7 @@
 
 ## 現在の段階
 
-- 骨組み（ソリューション構成、CI、ライセンス）だけがある。機能はまだなく、アプリは「PixView」と表示するだけ。
+- 骨組み（ソリューション構成、CI、ライセンス）と、本の情報の保存（#2）がある。画面はまだなく、アプリは「PixView」と表示するだけ。
 - 最初のリリースの機能は、issue #2〜#16 に分割してある。#2〜#6 には仕様があり、#7 以降は着手が近づいた時点で仕様を書く。
 - #6 まで進むと、本を追加して読むところまで一通り使える。その時点で、以降の優先順位を見直す。
 - 技術選定に使った試作は `prototype/maui` ブランチにある。捨てる前提のもので、本番コードに流用しない。
@@ -101,7 +101,7 @@ NuGet などのパッケージを参照として追加するときは、ライ�
 - MAUI は 11.0.10 以降を使う（`Directory.Packages.props` の `MauiVersion`）。SDK 付属の 11.0.0 は、Android の格子表示が項目数に比例して遅くなる（dotnet/maui#38925）。
 - Windows の CollectionView で GridItemsLayout を使うときは、項目に幅を明示し、`ItemSizingStrategy` を `MeasureAllItems` にする。画像を含む項目で幅を省くか、`MeasureFirstItem` を使うと 1 列になる（MAUI 11.0.10 で確認。dotnet/maui に該当する issue は見つかっていない）。
 - MAUI の `OnAppearing` では `Page.Window` が null のことがある。ウィンドウに依存する処理は `Loaded` で行う。
-- `tests/PixView.Core.Tests` には、テストが 0 件でも失敗にしない暫定設定（`--ignore-exit-code 8`）がある。最初のテストを追加するときに削除する。
+- Microsoft.Data.Sqlite の非同期メソッド（`OpenAsync`、`ExecuteReaderAsync` など）は、内部で同期的に動く。公式の勧めに従って呼ばずに、同期メソッドを使う。
 - ソリューションにプロジェクトを追加するときは、`dotnet sln add --include-references false` を使う。既定のままだと、参照先のプロジェクトがすでに登録されている場合に失敗し、何も追加されない（SDK 11.0.100）。
 - ひな形から生成したファイルは、BOM 付きで改行コードが CRLF のことがある。追加したファイルは、BOM なしの UTF-8、改行コード LF に直す。`dotnet format` が直すのは C# のファイルだけなので、XAML や XML は別に変換する。
 - 型は既定で internal にし、派生させない型は sealed にする。XAML に対応するクラスを internal にするときは、XAML のルート要素に `x:ClassModifier="Internal"` を付ける。付けないと、生成される側が public になり、ビルド エラー（CS0262）になる。

@@ -2,10 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net11.0</TargetFramework>
-
-    <!-- まだテストが 1 件もないため、「テストが実行されなかった」ことを示す終了コード 8 を失敗として扱わない。
-         最初のテストを追加するときに、この設定を削除する。 -->
-    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --ignore-exit-code 8</TestingPlatformCommandLineArguments>
   </PropertyGroup>
 
   <ItemGroup>
