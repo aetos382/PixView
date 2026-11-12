@@ -109,5 +109,6 @@ NuGet などのパッケージを参照として追加するときは、ライ�
 - テスト プロジェクトは、`tests/Directory.Build.props` で CA1515（型を internal にできる）と CA1707（名前にアンダースコアを含む）を無効にしている。
 - `src/PixView/PixView.csproj` は、Windows 向けのビルドに限って CA5392 を無効にしている。Windows App SDK のパッケージが差し込むソースが該当し、こちらでは直せないため（microsoft/WindowsAppSDK#4857）。
 - 構成によって使わなくなる `using` は、`#if` で囲む。未使用の `using` はビルド エラーになる。
-- CI は、ビルド、整形、テストの結果に影響しないファイル（Markdown、`LICENSE`、`.gitignore`、`.github/dependabot.yml`、`scripts/` の下）だけの変更では実行されない。無視する一覧は `.github/workflows/ci.yml` にある。ビルドに影響しないファイルの種類が増えたら、一覧に加える。
+- CI は、ビルド、整形、テストの結果に影響しないファイル（Markdown、`LICENSE`、`.gitignore`、`.github/dependabot.yml`、`scripts/` の下）だけの変更では実行されない。無視する一覧は `.github/workflows/ci.yml` にある。ビルドに影響しないファイルの種類が増えたら、一覧に加える。CodeQL のワークフロー（`.github/workflows/codeql.yml`）にも同じ一覧があるので、そろえて変更する。
+- CodeQL は、自前のワークフローで動かしている。C# は、ビルドをせずに解析する方式。MAUI に関わる型の情報が一部欠けるが、ワークロードの導入が不要で、短時間で終わる。
 - ワークフローで使うアクションを追加・更新したら、`gh actions-lock` を実行して `.github/workflows/actions.lock` を更新する。このファイルは手で編集しない。

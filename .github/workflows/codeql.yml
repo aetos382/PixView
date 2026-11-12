@@ -1,0 +1,66 @@
+name: CodeQL
+
+# コードとワークフローを CodeQL で解析して、セキュリティ上の問題を検出する。
+#
+# 解析の結果に影響しないファイルだけの変更では、実行しない。
+# 無視する一覧は、ci.yml と同じ内容にそろえておく。
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
+      - ".github/dependabot.yml"
+      - "scripts/**"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
+      - ".github/dependabot.yml"
+      - "scripts/**"
+  # コードに変更がなくても、新しく追加された検査で見つかる問題に気づけるよう、週に 1 回実行する。
+  schedule:
+    - cron: "23 18 * * 0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      # 解析の結果を登録するために必要。
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # C# は、ビルドをせずに解析する。
+          # ビルドして解析するには、ワークロードの導入と Windows のランナーが必要で、CI と同じくらいの時間がかかるため。
+          # その代わり、MAUI に関わる型の情報は一部欠ける。
+          - language: csharp
+            build-mode: none
+          - language: actions
+            build-mode: none
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: CodeQL の初期化
+        uses: github/codeql-action/init@v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: 解析
+        uses: github/codeql-action/analyze@v4.39.3
+        with:
+          category: "/language:${{ matrix.language }}"
