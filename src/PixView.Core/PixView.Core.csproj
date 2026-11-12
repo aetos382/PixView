@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net11.0</TargetFramework>
+
+    <!-- NativeAOT やトリミングと相性の悪いコードを、ビルド時に検出する。
+         NativeAOT で配布するかどうかは未定だが、後から対応できる状態を保つため。 -->
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
 </Project>

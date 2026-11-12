@@ -7,6 +7,11 @@
 
     <OutputType>Exe</OutputType>
     <RootNamespace>PixView</RootNamespace>
+
+    <!-- NativeAOT と相性の悪いコードを、ビルド時に検出する。解析だけを有効にしていて、ビルドの成果物は変わらない。
+         トリミングの解析（EnableTrimAnalyzer）は、MAUI が無効にしているので、ここでは指定していない。
+         抑制を外すと、MAUI 自体のコードで警告が出てビルドが失敗する（MAUI 11.0.10）。 -->
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
     <UseMaui>true</UseMaui>
     <SingleProject>true</SingleProject>
 
