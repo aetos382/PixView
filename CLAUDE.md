@@ -47,7 +47,11 @@
 - 実装計画：小さな issue は直接書く。作り方が分かれる issue では、feature-dev プラグインの `code-architect` エージェントで設計案を比べる。`/feature-dev` の一式は、多数のサブエージェントを起動するので、小さな issue には使わない。
 - テスト：dotnet-test プラグインの `writing-mstest-tests` スキルに従って書く。受け入れ条件の各項目を、1 つ以上のテストにする。
 - 受け入れ条件の照合：実装の文脈を持たないサブエージェントに、issue と差分だけを渡し、受け入れ条件を 1 項目ずつ判定させる。
-- コード レビュー：pr-review-toolkit プラグインの `/pr-review-toolkit:review-pr`、または `/code-review` を使う。
+- コード レビュー：次の 2 つを両方使う。指摘は報告までにとどめ、修正はユーザーの指示を受けてから行う。
+  - `/code-review`：バグを探す。
+  - `/pr-review-toolkit:review-pr`：テスト、エラー処理、型の設計、コメントを見る。観点は `code tests errors types comments` のように明示する。`all` と `simplify` は、コードを書き換えるエージェントが動くので使わない。
+  - 差分にテストが含まれるときは、dotnet-test プラグインの `test-anti-patterns` と `assertion-quality` スキルも使う。
+  - 差分にプロジェクト ファイル（`.csproj`、`.props`、`.targets`）が含まれるときは、dotnet-msbuild プラグインの `msbuild-code-review` エージェントも使う。
 - コミットとプル リクエスト：commit-commands プラグインを使う。
 
 ## リポジトリの運用
