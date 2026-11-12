@@ -4,7 +4,9 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
-    <!-- SDK に付属する 11.0.0 は、Android の格子表示が項目数に比例して遅くなる（dotnet/maui#38925）ため、11.0.10 以降を使う。 -->
+    <!-- SDK に付属する 11.0.0 は、Android の格子表示が項目数に比例して遅くなる（dotnet/maui#38925）ため、11.0.10 以降を使う。
+         版は、このプロパティで定義する。未定義だと MAUI のワークロードが自分の版（11.0.0）で埋めるので、
+         公式文書やひな形にならって $(MauiVersion) と書いた箇所が、古い版を参照してしまう。 -->
     <MauiVersion>11.0.10</MauiVersion>
   </PropertyGroup>
 

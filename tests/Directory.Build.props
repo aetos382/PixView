@@ -2,7 +2,11 @@
   <Import Project="../Directory.Build.props" />
 
   <PropertyGroup>
-    <NoWarn>$(NoWarn);CA1515;CA1707</NoWarn>
+    <!-- テストのコードには当てはまらないルールを、無効にする。
+         CA1515（型を internal にできる）：MSTest は、テスト クラスが public であることを求める。
+         CA1707（名前にアンダースコアを含む）：テスト メソッドの名前は、「メソッド名_状況_期待する結果」の形で、アンダースコアで区切る。
+         CA2007（ConfigureAwait を付ける）：MSTest は、テストを SynchronizationContext のないスレッドで実行するので、付けても動作は変わらない。 -->
+    <NoWarn>$(NoWarn);CA1515;CA1707;CA2007</NoWarn>
   </PropertyGroup>
 
 </Project>
