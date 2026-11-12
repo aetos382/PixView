@@ -1,0 +1,13 @@
+artifacts/
+bin/
+obj/
+
+.vs/
+
+launchSettings.json
+
+.vscode/
+*.user
+
+*.binlog
+*.log

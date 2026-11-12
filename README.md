@@ -79,3 +79,26 @@ Android の確認はエミュレーターで行っており、実機での確認
 ## 現時点では予定していないもの
 
 - RAR や 7z など、ZIP 以外のアーカイブ形式への対応
+
+## ビルドとテスト
+
+.NET SDK 11.0.100 以降と、.NET MAUI のワークロード（Android、Windows）が必要です。
+リポジトリのルートで次のコマンドを実行します。
+
+```powershell
+# ワークロードの導入（初回のみ）
+dotnet workload restore
+
+# ビルド
+dotnet build
+
+# テスト
+dotnet test -f net11.0
+
+# Windows 版の起動
+dotnet run --project src/PixView -f net11.0-windows10.0.19041.0
+```
+
+## ライセンス
+
+[BSD-2-Clause-Patent](LICENSE) です。

@@ -1,0 +1,41 @@
+<Project>
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <WarningLevel>9999</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- 未使用の using の検出（IDE0005）をビルドで有効にするには、ドキュメント ファイルの生成が必要になる。
+         公開メンバーすべてにドキュメント コメントを強制はしないので、CS1591 は抑制する。 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <DefaultItemExcludesInProjectFolder>
+      $(DefaultItemExcludesInProjectFolder);
+      packages.lock.json;
+      TestResults/**;
+      *.lscache
+    </DefaultItemExcludesInProjectFolder>
+    <DefaultItemExcludes>
+      $(DefaultItemExcludes);
+      *.log;
+      *.binlog
+    </DefaultItemExcludes>
+
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+    <DisableImplicitLibraryPacksFolder>true</DisableImplicitLibraryPacksFolder>
+  </PropertyGroup>
+
+  <!-- CI では、ビルドした環境のパスなどが成果物に残らないようにする。 -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+</Project>

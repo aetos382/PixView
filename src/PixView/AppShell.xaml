@@ -1,0 +1,12 @@
+<Shell
+    x:Class="PixView.AppShell"
+    x:ClassModifier="Internal"
+    xmlns:local="clr-namespace:PixView"
+    Title="PixView">
+
+    <ShellContent
+        Title="Home"
+        ContentTemplate="{DataTemplate local:MainPage}"
+        Route="MainPage" />
+
+</Shell>
