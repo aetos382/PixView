@@ -41,6 +41,13 @@ function Save-WindowsScreenshot {
         throw 'Windows では -ProcessName の指定が必要です。'
     }
 
+    # PC がロックされている間は、ウィンドウの内容が真っ白にしか取得できない。
+    # 白い画像を「何も表示されていない」と誤解しないよう、取得せずにエラーにする。
+    $sessionId = (Get-Process -Id $PID).SessionId
+    if (Get-Process -Name LogonUI -ErrorAction Ignore | Where-Object { $_.SessionId -eq $sessionId }) {
+        throw 'PC がロックされているため、ウィンドウの内容を取得できません。ロックを解除してから実行してください。'
+    }
+
     $process = Get-Process -Name $ProcessName -ErrorAction Ignore |
         Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } |
         Select-Object -First 1

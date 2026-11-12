@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PixView.Core/PixView.Core.csproj" />
+    <Project Path="src/PixView/PixView.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PixView.Core.Tests/PixView.Core.Tests.csproj" />
+  </Folder>
+</Solution>

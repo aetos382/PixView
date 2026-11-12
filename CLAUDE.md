@@ -4,11 +4,32 @@
 
 ## 現在の段階
 
-- 技術は .NET MAUI と SkiaSharp に確定した。本番コードはまだない。
+- 骨組み（ソリューション構成、CI、ライセンス）だけがある。機能はまだなく、アプリは「PixView」と表示するだけ。
 - 技術選定に使った試作は `prototype/maui` ブランチにある。捨てる前提のもので、本番コードに流用しない。
-- MAUI は 11.0.10 以降を使う。SDK 付属の 11.0.0 は、Android の格子表示が冊数に比例して遅くなる（dotnet/maui#38925）。
 - 未確認：手で操作したときのスクロールの見え方、Windows でのキー操作とホイール操作。
 - 未解決：試作で、Windows の全画面表示の自動確認が 3 回中 1 回失敗した（原因未特定）。
+- 未確認：CI（`.github/workflows/ci.yml`）は、まだ一度も実行していない。
+
+## 構成
+
+- `src/PixView` - .NET MAUI のアプリ（Android と Windows）。画面と OS 固有の処理を置く。
+- `src/PixView.Core` - UI に依存しないロジック（net11.0）。自動テストの対象にする。
+- `tests/PixView.Core.Tests` - `PixView.Core` のテスト（MSTest.Sdk、Microsoft.Testing.Platform）。
+- パッケージのバージョンは `Directory.Packages.props` で一元管理する。プロジェクト ファイルにはバージョンを書かない。
+- パッケージの取得元は nuget.org だけに限定している（`NuGet.config`）。
+- ビルドの成果物は、プロジェクトの下ではなく、ルートの `artifacts/` にまとめて出力される。
+- テキスト ファイルの改行コードは LF に統一している（`.gitattributes`、`.editorconfig`）。
+
+## コマンド
+
+リポジトリのルートで実行する。
+
+- `dotnet build` - ソリューション全体をビルドする。解析レベルは最大（`latest-all`）で、警告はエラーとして扱う
+- `dotnet test -f net11.0` - すべてのテストを実行する。`-f net11.0` を省くと、MAUI アプリまで実行対象になり、デバイスの指定を求められて失敗する
+- `dotnet format PixView.slnx` - `.editorconfig` に合わせて整形する。CI は `--verify-no-changes` で確認する
+- `dotnet build src/PixView -c Release -f net11.0-windows10.0.19041.0` - Windows 版をビルドする。exe は `artifacts/bin/PixView/release_net11.0-windows10.0.19041.0/PixView.exe`
+- `dotnet build src/PixView -c Release -f net11.0-android -t:Install` - Android 版を、接続中の端末またはエミュレーターにインストールする
+- `adb shell monkey -p io.github.aetos382.pixview -c android.intent.category.LAUNCHER 1` - Android 版を起動する
 
 ## 進め方
 
@@ -25,9 +46,20 @@
 - 画面に関わる変更や計測は、画面を画像に保存して目で確認してから完了とする。数値やログだけで判断しない。
 - `./scripts/Save-AppScreenshot.ps1 -Platform Windows -ProcessName <プロセス名> -OutFile <ファイル>` - Windows のアプリのウィンドウを保存する
 - `./scripts/Save-AppScreenshot.ps1 -Platform Android -OutFile <ファイル>` - Android の画面を保存する
+- PC がロックされている間は、Windows のウィンドウは真っ白にしか取得できない（スクリプトはエラーにする）。その場合は UI オートメーションで画面上の要素を列挙して内容を確かめ、画像での確認が残っていることを報告する。
 - 静止画では動きの滑らかさを判断できない。スクロール中の見え方などは、人による確認が必要な項目として報告する。
 
 ## 注意点
 
+- MAUI は 11.0.10 以降を使う（`Directory.Packages.props` の `MauiVersion`）。SDK 付属の 11.0.0 は、Android の格子表示が項目数に比例して遅くなる（dotnet/maui#38925）。
 - Windows の CollectionView で GridItemsLayout を使うときは、項目に幅を明示し、`ItemSizingStrategy` を `MeasureAllItems` にする。画像を含む項目で幅を省くか、`MeasureFirstItem` を使うと 1 列になる（MAUI 11.0.10 で確認。dotnet/maui に該当する issue は見つかっていない）。
 - MAUI の `OnAppearing` では `Page.Window` が null のことがある。ウィンドウに依存する処理は `Loaded` で行う。
+- `tests/PixView.Core.Tests` には、テストが 0 件でも失敗にしない暫定設定（`--ignore-exit-code 8`）がある。最初のテストを追加するときに削除する。
+- ソリューションにプロジェクトを追加するときは、`dotnet sln add --include-references false` を使う。既定のままだと、参照先のプロジェクトがすでに登録されている場合に失敗し、何も追加されない（SDK 11.0.100）。
+- ひな形から生成したファイルは、BOM 付きで改行コードが CRLF のことがある。追加したファイルは、BOM なしの UTF-8、改行コード LF に直す。`dotnet format` が直すのは C# のファイルだけなので、XAML や XML は別に変換する。
+- 型は既定で internal にし、派生させない型は sealed にする。XAML に対応するクラスを internal にするときは、XAML のルート要素に `x:ClassModifier="Internal"` を付ける。付けないと、生成される側が public になり、ビルド エラー（CS0262）になる。
+- 解析の指摘を抑制するときは、対象の型やメンバーに `SuppressMessage` 属性を付け、`Justification` に理由を書く。プロジェクト単位の抑制は、次の 2 つに限っている。
+- テスト プロジェクトは、`tests/Directory.Build.props` で CA1515（型を internal にできる）と CA1707（名前にアンダースコアを含む）を無効にしている。
+- `src/PixView/PixView.csproj` は、Windows 向けのビルドに限って CA5392 を無効にしている。Windows App SDK のパッケージが差し込むソースが該当し、こちらでは直せないため（microsoft/WindowsAppSDK#4857）。
+- 構成によって使わなくなる `using` は、`#if` で囲む。未使用の `using` はビルド エラーになる。
+- ワークフローで使うアクションを追加・更新したら、`gh actions-lock` を実行して `.github/workflows/actions.lock` を更新する。このファイルは手で編集しない。

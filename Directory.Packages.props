@@ -1,0 +1,20 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+
+    <!-- SDK に付属する 11.0.0 は、Android の格子表示が項目数に比例して遅くなる（dotnet/maui#38925）ため、11.0.10 以降を使う。 -->
+    <MauiVersion>11.0.10</MauiVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <GlobalPackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+  </ItemGroup>
+
+</Project>

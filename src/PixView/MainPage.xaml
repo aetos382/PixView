@@ -1,0 +1,13 @@
+<ContentPage x:Class="PixView.MainPage"
+             x:ClassModifier="Internal"
+             Title="PixView">
+
+    <!-- 骨組みの段階では、起動を確認するための表示だけを置く。 -->
+    <Label
+        Text="PixView"
+        Style="{StaticResource Headline}"
+        HorizontalOptions="Center"
+        VerticalOptions="Center"
+        SemanticProperties.HeadingLevel="Level1" />
+
+</ContentPage>

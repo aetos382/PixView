@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+
+      # MAUI のビルドに必要なワークロードを、プロジェクトの内容から判断して導入する。
+      - name: ワークロードの導入
+        run: dotnet workload restore
+
+      - name: ビルド
+        run: dotnet build -c Release
+
+      - name: 整形の確認
+        run: dotnet format PixView.slnx --verify-no-changes
+
+      # 対象フレームワークを指定しないと、MAUI アプリまで実行対象として扱われ、デバイスの指定を求められて失敗する。
+      - name: テスト
+        run: dotnet test -c Release -f net11.0 --no-build
