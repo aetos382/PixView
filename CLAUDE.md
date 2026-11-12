@@ -87,4 +87,5 @@ NuGet などのパッケージを参照として追加するときは、ライ�
 - テスト プロジェクトは、`tests/Directory.Build.props` で CA1515（型を internal にできる）と CA1707（名前にアンダースコアを含む）を無効にしている。
 - `src/PixView/PixView.csproj` は、Windows 向けのビルドに限って CA5392 を無効にしている。Windows App SDK のパッケージが差し込むソースが該当し、こちらでは直せないため（microsoft/WindowsAppSDK#4857）。
 - 構成によって使わなくなる `using` は、`#if` で囲む。未使用の `using` はビルド エラーになる。
+- CI は、ビルド、整形、テストの結果に影響しないファイル（Markdown、`LICENSE`、`.gitignore`、`.github/dependabot.yml`、`scripts/` の下）だけの変更では実行されない。無視する一覧は `.github/workflows/ci.yml` にある。ビルドに影響しないファイルの種類が増えたら、一覧に加える。
 - ワークフローで使うアクションを追加・更新したら、`gh actions-lock` を実行して `.github/workflows/actions.lock` を更新する。このファイルは手で編集しない。

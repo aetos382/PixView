@@ -1,9 +1,24 @@
 name: CI
 
+# ビルド、整形、テストの結果に影響しないファイルだけの変更では、実行しない。
+# 無視する一覧にないファイルが 1 つでも変更に含まれていれば、実行される。
+# push と pull_request の一覧は、同じ内容にそろえておく。
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
+      - ".github/dependabot.yml"
+      - "scripts/**"
   pull_request:
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
+      - ".github/dependabot.yml"
+      - "scripts/**"
 
 permissions:
   contents: read
