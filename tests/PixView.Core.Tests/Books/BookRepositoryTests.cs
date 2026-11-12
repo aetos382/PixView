@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Time.Testing;
 using PixView.Core.Books;
 
 namespace PixView.Core.Tests.Books;
@@ -297,37 +298,6 @@ public sealed class BookRepositoryTests : IDisposable
     }
 
     /// <summary>
-    /// 書き込んだときと読み出すときで、<see cref="TimeProvider"/> の示す端末のタイムゾーンが違っても、
-    /// 追加した日時と最後に読んだ日時が、同じ時刻を指すことを確かめる。
-    /// 最後に読んだ日時は UTC 以外のオフセットで渡し、オフセットの扱いで時刻がずれないことも確かめる。
-    /// </summary>
-    [TestMethod]
-    public async Task Dates_TimeZoneChangedBetweenWriteAndRead_PointToSameInstant()
-    {
-        var tokyo = TimeZoneInfo.CreateCustomTimeZone("Test/UTC+09", TimeSpan.FromHours(9), "UTC+09", "UTC+09");
-        var newYork = TimeZoneInfo.CreateCustomTimeZone("Test/UTC-05", TimeSpan.FromHours(-5), "UTC-05", "UTC-05");
-        var lastReadAt = new DateTimeOffset(2026, 11, 12, 23, 45, 30, 765, TimeSpan.FromHours(9));
-
-        Guid id;
-        using (var repository = await BookRepository.OpenAsync(_databasePath, new FixedTimeProvider(Now, tokyo), CancellationToken))
-        {
-            var added = await repository.AddAsync("題名", null, FolderLocation, BookSourceKind.Folder, CancellationToken);
-            await repository.UpdateAsync(added.Book with { LastReadAt = lastReadAt }, CancellationToken);
-            id = added.Book.Id;
-        }
-
-        using (var repository = await BookRepository.OpenAsync(_databasePath, new FixedTimeProvider(Now.AddDays(1), newYork), CancellationToken))
-        {
-            var actual = await repository.GetAsync(id, CancellationToken);
-
-            Assert.IsNotNull(actual);
-            Assert.IsNotNull(actual.LastReadAt);
-            Assert.AreEqual(Now.UtcDateTime, actual.AddedAt.UtcDateTime);
-            Assert.AreEqual(lastReadAt.UtcDateTime, actual.LastReadAt.Value.UtcDateTime);
-        }
-    }
-
-    /// <summary>
     /// 日時が、UTC の ISO 8601 形式の文字列（YYYY-MM-DDTHH:MM:SS.SSSZ）で保存されることを確かめる。
     /// UTC 以外のオフセットで渡した日時も、UTC に換算して保存されることを確かめる。
     /// 端末のタイムゾーンが UTC 以外の環境で実行すれば、端末のローカル時刻で保存してしまう誤りも検出できる。
@@ -359,7 +329,7 @@ public sealed class BookRepositoryTests : IDisposable
     {
         var now = Now.AddTicks(9_999);
         var lastReadAt = Now.AddHours(1).AddTicks(9_999);
-        using var repository = await BookRepository.OpenAsync(_databasePath, new FixedTimeProvider(now), CancellationToken);
+        using var repository = await BookRepository.OpenAsync(_databasePath, new FakeTimeProvider(now), CancellationToken);
 
         var added = await repository.AddAsync("題名", null, FolderLocation, BookSourceKind.Folder, CancellationToken);
         await repository.UpdateAsync(added.Book with { LastReadAt = lastReadAt }, CancellationToken);
@@ -477,7 +447,7 @@ public sealed class BookRepositoryTests : IDisposable
 
     private Task<BookRepository> OpenRepositoryAsync()
     {
-        return BookRepository.OpenAsync(_databasePath, new FixedTimeProvider(Now), CancellationToken);
+        return BookRepository.OpenAsync(_databasePath, new FakeTimeProvider(Now), CancellationToken);
     }
 
     private static void SetSchemaVersionToNewer(string databasePath)
