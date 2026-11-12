@@ -1,0 +1,35 @@
+# 依存関係の更新を、Dependabot に自動で提案させるための設定。
+version: 2
+
+updates:
+  # ワークフローで使うアクション。
+  # アクションを更新するプル リクエストでは、ロック ファイル（.github/workflows/actions.lock）も一緒に更新される。
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # NuGet のパッケージ（Directory.Packages.props と global.json の msbuild-sdks）。
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      # 一緒に更新しないと整合しないものを、1 つのプル リクエストにまとめる。
+      maui:
+        patterns:
+          - "Microsoft.Maui.*"
+      testing:
+        patterns:
+          - "MSTest*"
+          - "Microsoft.Testing.*"
+
+  # .NET SDK（global.json の sdk.version）。
+  - package-ecosystem: "dotnet-sdk"
+    directory: "/"
+    schedule:
+      interval: "weekly"
