@@ -8,7 +8,6 @@
 - 技術選定に使った試作は `prototype/maui` ブランチにある。捨てる前提のもので、本番コードに流用しない。
 - 未確認：手で操作したときのスクロールの見え方、Windows でのキー操作とホイール操作。
 - 未解決：試作で、Windows の全画面表示の自動確認が 3 回中 1 回失敗した（原因未特定）。
-- 未確認：CI（`.github/workflows/ci.yml`）は、まだ一度も実行していない。
 
 ## 構成
 
@@ -17,6 +16,7 @@
 - `tests/PixView.Core.Tests` - `PixView.Core` のテスト（MSTest.Sdk、Microsoft.Testing.Platform）。
 - パッケージのバージョンは `Directory.Packages.props` で一元管理する。プロジェクト ファイルにはバージョンを書かない。
 - パッケージの取得元は nuget.org だけに限定している（`NuGet.config`）。
+- パッケージのロック ファイル（`RestorePackagesWithLockFile`）は導入しない。`src/PixView` は OS によって対象フレームワークが変わるため、別の OS で復元するだけでロック ファイルに差分が出る。その状態は許容しない方針。
 - ビルドの成果物は、プロジェクトの下ではなく、ルートの `artifacts/` にまとめて出力される。
 - テキスト ファイルの改行コードは LF に統一している（`.gitattributes`、`.editorconfig`）。
 
