@@ -4,7 +4,7 @@
 
 ## 現在の段階
 
-- 骨組み（ソリューション構成、CI、ライセンス）だけがある。機能はまだなく、アプリは「PixView」と表示するだけ。
+- 骨組み（ソリューション構成、CI、ライセンス）と、本の情報の保存（#2）がある。画面はまだなく、アプリは「PixView」と表示するだけ。
 - 最初のリリースの機能は、issue #2〜#16 に分割してある。#2〜#6 には仕様があり、#7 以降は着手が近づいた時点で仕様を書く。
 - #6 まで進むと、本を追加して読むところまで一通り使える。その時点で、以降の優先順位を見直す。
 - 技術選定に使った試作は `prototype/maui` ブランチにある。捨てる前提のもので、本番コードに流用しない。
@@ -38,6 +38,7 @@
 
 - 仕様は機能単位で GitHub の issue に書く（振る舞い、自動テストで確認する受け入れ条件、実機で確認する項目、やらないこと）。
 - 仕様や計画の文書ファイルをリポジトリに作らない。残すのは README.md、テスト、CLAUDE.md のみ。
+- CLAUDE.md には、ほかのファイルに書いてあることを繰り返すだけの記述をしない。書いておかないと将来間違える懸念があることだけを書く。
 - issue 単位で「実装計画 → 実装とテスト → レビュー → マージ」を回す。
 - 1 つの issue は、1 つのセッションで扱う。実装計画は、issue にコメントとして残す。
 
@@ -46,7 +47,11 @@
 - 実装計画：小さな issue は直接書く。作り方が分かれる issue では、feature-dev プラグインの `code-architect` エージェントで設計案を比べる。`/feature-dev` の一式は、多数のサブエージェントを起動するので、小さな issue には使わない。
 - テスト：dotnet-test プラグインの `writing-mstest-tests` スキルに従って書く。受け入れ条件の各項目を、1 つ以上のテストにする。
 - 受け入れ条件の照合：実装の文脈を持たないサブエージェントに、issue と差分だけを渡し、受け入れ条件を 1 項目ずつ判定させる。
-- コード レビュー：pr-review-toolkit プラグインの `/pr-review-toolkit:review-pr`、または `/code-review` を使う。
+- コード レビュー：次の 2 つを両方使う。指摘は報告までにとどめ、修正はユーザーの指示を受けてから行う。
+  - `/code-review`：バグを探す。
+  - `/pr-review-toolkit:review-pr`：テスト、エラー処理、型の設計、コメントを見る。観点は `code tests errors types comments` のように明示する。`all` と `simplify` は、コードを書き換えるエージェントが動くので使わない。
+  - 差分にテストが含まれるときは、dotnet-test プラグインの `test-anti-patterns` と `assertion-quality` スキルも使う。
+  - 差分にプロジェクト ファイル（`.csproj`、`.props`、`.targets`）が含まれるときは、dotnet-msbuild プラグインの `msbuild-code-review` エージェントも使う。
 - コミットとプル リクエスト：commit-commands プラグインを使う。
 
 ## リポジトリの運用
@@ -60,11 +65,10 @@
 
 ### Dependabot
 
-依存関係の更新は、Dependabot が週 1 回確認して、プル リクエストで提案する（`.github/dependabot.yml`）。対象は、NuGet のパッケージ、.NET SDK、ワークフローのアクション。
+Dependabot のプル リクエストを扱うときは、次の点に注意する。
 
-- 更新のプル リクエストでも、ライセンスを確認する。版の更新で、依存するパッケージが増えたり、ライセンスが変わったりすることがある。その変化は、プル リクエストの差分には現れない。
+- 更新でも、ライセンスを確認する。版の更新で、依存するパッケージが増えたり、ライセンスが変わったりすることがある。その変化は、プル リクエストの差分には現れない。
 - .NET SDK の更新を取り込むときは、手元の SDK も同じ版に更新する。
-- アクションを更新するプル リクエストでは、ロック ファイル（`.github/workflows/actions.lock`）も一緒に更新される。
 - Dependabot が作るコミットとプル リクエストの題名は、英語のままでよい。
 - MAUI のバージョンは、プロパティ（`MauiVersion`）を経由して指定している。Dependabot がこれを正しく更新できるかは、まだ確かめていない。最初の更新のプル リクエストで、`Directory.Packages.props` の差分を確認する。
 
@@ -101,13 +105,11 @@ NuGet などのパッケージを参照として追加するときは、ライ�
 - MAUI は 11.0.10 以降を使う（`Directory.Packages.props` の `MauiVersion`）。SDK 付属の 11.0.0 は、Android の格子表示が項目数に比例して遅くなる（dotnet/maui#38925）。
 - Windows の CollectionView で GridItemsLayout を使うときは、項目に幅を明示し、`ItemSizingStrategy` を `MeasureAllItems` にする。画像を含む項目で幅を省くか、`MeasureFirstItem` を使うと 1 列になる（MAUI 11.0.10 で確認。dotnet/maui に該当する issue は見つかっていない）。
 - MAUI の `OnAppearing` では `Page.Window` が null のことがある。ウィンドウに依存する処理は `Loaded` で行う。
-- `tests/PixView.Core.Tests` には、テストが 0 件でも失敗にしない暫定設定（`--ignore-exit-code 8`）がある。最初のテストを追加するときに削除する。
+- Microsoft.Data.Sqlite の非同期メソッド（`OpenAsync`、`ExecuteReaderAsync` など）は、内部で同期的に動く。公式の勧めに従って呼ばずに、同期メソッドを使う。
 - ソリューションにプロジェクトを追加するときは、`dotnet sln add --include-references false` を使う。既定のままだと、参照先のプロジェクトがすでに登録されている場合に失敗し、何も追加されない（SDK 11.0.100）。
 - ひな形から生成したファイルは、BOM 付きで改行コードが CRLF のことがある。追加したファイルは、BOM なしの UTF-8、改行コード LF に直す。`dotnet format` が直すのは C# のファイルだけなので、XAML や XML は別に変換する。
 - 型は既定で internal にし、派生させない型は sealed にする。XAML に対応するクラスを internal にするときは、XAML のルート要素に `x:ClassModifier="Internal"` を付ける。付けないと、生成される側が public になり、ビルド エラー（CS0262）になる。
-- 解析の指摘を抑制するときは、対象の型やメンバーに `SuppressMessage` 属性を付け、`Justification` に理由を書く。プロジェクト単位の抑制は、次の 2 つに限っている。
-- テスト プロジェクトは、`tests/Directory.Build.props` で CA1515（型を internal にできる）と CA1707（名前にアンダースコアを含む）を無効にしている。
-- `src/PixView/PixView.csproj` は、Windows 向けのビルドに限って CA5392 を無効にしている。Windows App SDK のパッケージが差し込むソースが該当し、こちらでは直せないため（microsoft/WindowsAppSDK#4857）。
+- 解析の指摘を抑制するときは、対象の型やメンバーに `SuppressMessage` 属性を付け、`Justification` に理由を書く。ルールがプロジェクト全体に当てはまらない場合や、指摘の対象が自分で直せないコードの場合は、プロジェクト単位（`NoWarn`）で抑制してよい。その場合は、設定する箇所にコメントで理由を書く。
 - 構成によって使わなくなる `using` は、`#if` で囲む。未使用の `using` はビルド エラーになる。
 - CI は、ビルド、整形、テストの結果に影響しないファイル（Markdown、`LICENSE`、`.gitignore`、`.github/dependabot.yml`、`scripts/` の下）だけの変更では実行されない。無視する一覧は `.github/workflows/ci.yml` にある。ビルドに影響しないファイルの種類が増えたら、一覧に加える。CodeQL のワークフロー（`.github/workflows/codeql.yml`）にも同じ一覧があるので、そろえて変更する。
 - CodeQL は、自前のワークフローで動かしている。C# は、ビルドをせずに解析する方式。MAUI に関わる型の情報が一部欠けるが、ワークロードの導入が不要で、短時間で終わる。
